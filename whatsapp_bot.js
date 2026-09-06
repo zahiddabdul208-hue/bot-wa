@@ -157,8 +157,9 @@ const KNOWLEDGE_BASE_FILE = path.join(
 // ===============================
 
 const client = new Client({
-  authStrategy: new LocalAuth(),
-
+  authStrategy: new LocalAuth({
+    clientId: 'railway-bot'
+  }),
   puppeteer: {
     headless: true,
 
