@@ -19,14 +19,13 @@ let botReady = false;
 
 app.get('/', (req, res) => {
   if (currentQR) {
-    res.send(`
+    return res.send(`
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WhatsApp Bot - QR Code</title>
-
   <style>
     body {
       margin: 0;
@@ -49,17 +48,12 @@ app.get('/', (req, res) => {
       box-sizing: border-box;
     }
 
-    h1 {
-      margin-top: 0;
-    }
-
     img {
       width: 300px;
       max-width: 100%;
       background: white;
       padding: 10px;
       border-radius: 10px;
-      box-sizing: border-box;
     }
 
     .waiting {
@@ -86,12 +80,10 @@ app.get('/', (req, res) => {
 </body>
 </html>
     `);
-
-    return;
   }
 
   if (botReady) {
-    res.send(`
+    return res.send(`
 <!DOCTYPE html>
 <html>
 <head>
@@ -142,8 +134,6 @@ app.get('/', (req, res) => {
 </body>
 </html>
     `);
-
-    return;
   }
 
   res.send(`
@@ -410,16 +400,20 @@ client.on('change_state', (state) => {
 });
 
 // ==================================================
-// MESSAGE DEBUG
+// MESSAGE CREATE DEBUG
 // ==================================================
 
 client.on('message_create', (msg) => {
-  console.log(
-    `[${new Date().toLocaleTimeString()}] 📩 MESSAGE_CREATE:`,
-    msg.from,
-    '| BODY:',
-    JSON.stringify(msg.body)
-  );
+  console.log('');
+  console.log('========== MESSAGE CREATE ==========');
+  console.log('FROM:', msg.from);
+  console.log('BODY:', JSON.stringify(msg.body));
+  console.log('TYPE:', msg.type);
+  console.log('HAS MEDIA:', msg.hasMedia);
+  console.log('FROM ME:', msg.fromMe);
+  console.log('AUTHOR:', msg.author);
+  console.log('====================================');
+  console.log('');
 });
 
 // ==================================================
@@ -428,21 +422,28 @@ client.on('message_create', (msg) => {
 
 client.on('message', async (msg) => {
   try {
-    console.log(
-      `[${new Date().toLocaleTimeString()}] 📥 MESSAGE EVENT:`,
-      msg.from,
-      '| BODY:',
-      JSON.stringify(msg.body)
-    );
+    console.log('');
+    console.log('========== PESAN MASUK ==========');
+    console.log('FROM:', msg.from);
+    console.log('BODY:', JSON.stringify(msg.body));
+    console.log('TYPE:', msg.type);
+    console.log('IS STATUS:', msg.isStatus);
+    console.log('HAS MEDIA:', msg.hasMedia);
+    console.log('FROM ME:', msg.fromMe);
+    console.log('AUTHOR:', msg.author);
+    console.log('ID:', msg.id ? msg.id._serialized : 'tidak ada');
+    console.log('=================================');
 
     const userInput = (msg.body || '').trim();
 
+    // Abaikan pesan kosong
     if (!userInput) {
+      console.log('⚠️ BODY KOSONG - pesan dilewati');
       return;
     }
 
     console.log(
-      `[${new Date().toLocaleTimeString()}] Pesan: ${userInput}`
+      `[${new Date().toLocaleTimeString()}] 📩 Pesan terbaca: ${userInput}`
     );
 
     const command = userInput.toLowerCase();
@@ -471,6 +472,9 @@ client.on('message', async (msg) => {
       `.trim();
 
       await msg.reply(helpText);
+
+      console.log('→ ✓ !help berhasil dibalas');
+
       return;
     }
 
@@ -486,6 +490,8 @@ client.on('message', async (msg) => {
         '🎓 *Mode Training Aktif!*\n\n' +
         'Kirim pertanyaan yang ingin diajarkan kepada bot.'
       );
+
+      console.log('→ ✓ Mode training aktif');
 
       return;
     }
@@ -535,6 +541,7 @@ client.on('message', async (msg) => {
       });
 
       await msg.reply(list);
+
       return;
     }
 
@@ -597,17 +604,24 @@ client.on('message', async (msg) => {
     const response = findSimilarQuestion(userInput);
 
     if (response) {
-      const chat = await msg.getChat();
+      try {
+        const chat = await msg.getChat();
 
-      await chat.sendStateTyping();
+        await chat.sendStateTyping();
 
-      await new Promise((resolve) => {
-        setTimeout(resolve, 1000);
-      });
+        await new Promise((resolve) => {
+          setTimeout(resolve, 1000);
+        });
+      } catch (typingError) {
+        console.log(
+          '⚠️ Gagal menampilkan typing:',
+          typingError.message
+        );
+      }
 
       await msg.reply(response);
 
-      console.log('→ ✓ Jawaban dikirim');
+      console.log('→ ✓ Jawaban knowledge base dikirim');
 
       return;
     }
@@ -635,11 +649,13 @@ client.on('message', async (msg) => {
 
     await msg.reply(randomReply);
 
+    console.log('→ ✓ Fallback berhasil dikirim');
+
   } catch (error) {
-    console.error(
-      '❌ Error saat memproses pesan:',
-      error
-    );
+    console.error('');
+    console.error('❌ ERROR SAAT MEMPROSES PESAN');
+    console.error(error);
+    console.error('');
 
     try {
       await msg.reply(
