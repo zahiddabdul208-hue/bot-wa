@@ -606,5 +606,4 @@ loadKnowledgeBase();
 console.log('🚀 Memulai WhatsApp Bot...\n');
 
 client.initialize();
-```
 
