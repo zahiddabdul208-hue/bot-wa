@@ -1,4 +1,4 @@
-```javascript
+
 // WhatsApp Bot dengan Fitur Training
 // Railway version dengan QR Code melalui halaman web
 
@@ -18,79 +18,125 @@ const PORT = process.env.PORT || 3000;
 let currentQR = null;
 
 app.get('/', (req, res) => {
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>WhatsApp Bot</title>
-      <style>
-        body {
-          margin: 0;
-          min-height: 100vh;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          background: #111;
-          color: white;
-          font-family: Arial, sans-serif;
-          text-align: center;
-        }
+  if (currentQR) {
+    res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp Bot - QR Code</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
 
-        .container {
-          background: #1e1e1e;
-          padding: 30px;
-          border-radius: 20px;
-          max-width: 400px;
-          width: 90%;
-        }
+    .container {
+      background: #1e1e1e;
+      padding: 30px;
+      border-radius: 20px;
+      max-width: 400px;
+      width: 90%;
+      box-sizing: border-box;
+    }
 
-        h1 {
-          margin-top: 0;
-        }
+    h1 {
+      margin-top: 0;
+    }
 
-        img {
-          width: 300px;
-          max-width: 100%;
-          background: white;
-          padding: 10px;
-          border-radius: 10px;
-        }
+    img {
+      width: 300px;
+      max-width: 100%;
+      background: white;
+      padding: 10px;
+      border-radius: 10px;
+      box-sizing: border-box;
+    }
 
-        .success {
-          color: #00ff88;
-          font-size: 20px;
-        }
+    .waiting {
+      color: #ffaa00;
+      font-size: 18px;
+    }
+  </style>
+</head>
 
-        .waiting {
-          color: #ffaa00;
-        }
-      </style>
-    </head>
+<body>
+  <div class="container">
+    <h1>🤖 WhatsApp Bot</h1>
 
-    <body>
-      <div class="container">
+    <p class="waiting">
+      📱 Scan QR ini dengan WhatsApp
+    </p>
 
-        <h1>🤖 WhatsApp Bot</h1>
+    <img src="${currentQR}" alt="WhatsApp QR Code">
 
-        ${
-          currentQR
-            ? `
-              <p class="waiting">📱 Scan QR ini dengan WhatsApp</p>
-              <img src="${currentQR}" alt="WhatsApp QR Code">
-              <p>WhatsApp → Perangkat tertaut → Tautkan perangkat</p>
-            `
-            : `
-              <p class="success">✓ Bot sudah terhubung!</p>
-              <p>QR Code tidak diperlukan.</p>
-            `
-        }
+    <p>
+      WhatsApp → Perangkat tertaut → Tautkan perangkat
+    </p>
+  </div>
+</body>
+</html>
+    `);
+  } else {
+    res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp Bot</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
 
-      </div>
-    </body>
-    </html>
-  `);
+    .container {
+      background: #1e1e1e;
+      padding: 30px;
+      border-radius: 20px;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    .success {
+      color: #00ff88;
+      font-size: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>🤖 WhatsApp Bot</h1>
+
+    <p class="success">
+      ✓ Bot sudah terhubung!
+    </p>
+
+    <p>
+      QR Code tidak diperlukan.
+    </p>
+  </div>
+</body>
+</html>
+    `);
+  }
 });
 
 app.listen(PORT, () => {
@@ -561,3 +607,4 @@ console.log('🚀 Memulai WhatsApp Bot...\n');
 
 client.initialize();
 ```
+
