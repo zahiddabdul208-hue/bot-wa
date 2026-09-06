@@ -335,20 +335,21 @@ client.on('ready', () => {
 
   console.log('🤖 Bot sedang menunggu pesan...');
   console.log('');
-});
 client.on('message_create', (msg) => {
   console.log(
-    '📩 MESSAGE_CREATE:',
+    `[${new Date().toLocaleTimeString()}] 📩 MESSAGE_CREATE:`,
     msg.from,
-    '|',
-    msg.body
+    '| BODY:',
+    JSON.stringify(msg.body)
   );
 });
 
 client.on('change_state', (state) => {
-  console.log('🔄 WhatsApp State:', state);
+  console.log(
+    `[${new Date().toLocaleTimeString()}] 🔄 WhatsApp State:`,
+    state
+  );
 });
-
 // ===============================
 // MESSAGE DEBUG
 // ===============================
