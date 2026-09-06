@@ -1,3 +1,4 @@
+
 {
   "name": "whatsapp-bot-trainer",
   "version": "1.0.0",
@@ -24,10 +25,11 @@
     "nodemon": "^3.1.14"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": "20.x"
   },
   "allowScripts": {
     "puppeteer@23.11.1": true,
     "puppeteer@24.38.0": true
   }
 }
+
