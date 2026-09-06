@@ -335,6 +335,12 @@ client.on('ready', () => {
 
   console.log('🤖 Bot sedang menunggu pesan...');
   console.log('');
+});
+
+// ===============================
+// MESSAGE DEBUG
+// ===============================
+
 client.on('message_create', (msg) => {
   console.log(
     `[${new Date().toLocaleTimeString()}] 📩 MESSAGE_CREATE:`,
@@ -350,22 +356,6 @@ client.on('change_state', (state) => {
     state
   );
 });
-// ===============================
-// MESSAGE DEBUG
-// ===============================
-
-client.on('message_create', (msg) => {
-  console.log(
-    '📩 MESSAGE_CREATE:',
-    msg.from,
-    '|',
-    msg.body
-  );
-});
-
-client.on('change_state', (state) => {
-  console.log('🔄 WhatsApp State:', state);
-});
 
 // ===============================
 // MESSAGE HANDLER
@@ -374,10 +364,10 @@ client.on('change_state', (state) => {
 client.on('message', async (msg) => {
   try {
     console.log(
-      '📥 MESSAGE EVENT:',
+      `[${new Date().toLocaleTimeString()}] 📥 MESSAGE EVENT:`,
       msg.from,
-      '|',
-      msg.body
+      '| BODY:',
+      JSON.stringify(msg.body)
     );
 
     const userInput = msg.body.trim();
@@ -389,6 +379,7 @@ client.on('message', async (msg) => {
     console.log(
       `[${new Date().toLocaleTimeString()}] Pesan: ${userInput}`
     );
+
     // ===============================
     // HELP
     // ===============================
@@ -500,9 +491,7 @@ client.on('message', async (msg) => {
     // ===============================
 
     if (learningMode) {
-
       if (pendingQuestion === '') {
-
         pendingQuestion = userInput;
 
         await msg.reply(
@@ -541,7 +530,6 @@ client.on('message', async (msg) => {
     const response = findSimilarQuestion(userInput);
 
     if (response) {
-
       const chat = await msg.getChat();
 
       await chat.sendStateTyping();
@@ -578,7 +566,6 @@ client.on('message', async (msg) => {
     await msg.reply(randomReply);
 
   } catch (error) {
-
     console.error(
       '❌ Error saat memproses pesan:'
     );
@@ -597,6 +584,51 @@ client.on('message', async (msg) => {
     }
   }
 });
+
+// ===============================
+// DISCONNECTED
+// ===============================
+
+client.on('disconnected', (reason) => {
+  console.log('\n❌ WhatsApp terputus.');
+  console.log('Alasan:', reason);
+});
+
+// ===============================
+// AUTHENTICATION
+// ===============================
+
+client.on('authenticated', () => {
+  console.log('✓ WhatsApp authentication berhasil');
+});
+
+client.on('auth_failure', (message) => {
+  console.error(
+    '❌ Authentication gagal:',
+    message
+  );
+});
+
+// ===============================
+// ERROR
+// ===============================
+
+client.on('error', (error) => {
+  console.error(
+    '❌ Client error:',
+    error
+  );
+});
+
+// ===============================
+// START BOT
+// ===============================
+
+loadKnowledgeBase();
+
+console.log('🚀 Memulai WhatsApp Bot...\n');
+
+client.initialize();
 
 // ===============================
 // DISCONNECTED
