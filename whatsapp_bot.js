@@ -421,7 +421,11 @@ client.on('message_create', (msg) => {
 // ==================================================
 
 client.on('message', async (msg) => {
-  try {
+  try {    // Abaikan notifikasi sistem WhatsApp
+    if (msg.type === 'e2e_notification') {
+      console.log('⚠️ E2E notification diabaikan');
+      return;
+    }
     console.log('');
     console.log('========== PESAN MASUK ==========');
     console.log('FROM:', msg.from);
