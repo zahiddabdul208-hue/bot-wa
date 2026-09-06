@@ -336,12 +336,59 @@ client.on('ready', () => {
   console.log('🤖 Bot sedang menunggu pesan...');
   console.log('');
 });
+client.on('message_create', (msg) => {
+  console.log(
+    '📩 MESSAGE_CREATE:',
+    msg.from,
+    '|',
+    msg.body
+  );
+});
+
+client.on('change_state', (state) => {
+  console.log('🔄 WhatsApp State:', state);
+});
+
+client.on('message', async (msg) => {
+// ===============================
+// MESSAGE DEBUG
+// ===============================
+
+client.on('message_create', (msg) => {
+  console.log(
+    '📩 MESSAGE_CREATE:',
+    msg.from,
+    '|',
+    msg.body
+  );
+});
+
+client.on('change_state', (state) => {
+  console.log('🔄 WhatsApp State:', state);
+});
 
 // ===============================
 // MESSAGE HANDLER
 // ===============================
 
 client.on('message', async (msg) => {
+  try {
+    console.log(
+      '📥 MESSAGE EVENT:',
+      msg.from,
+      '|',
+      msg.body
+    );
+
+    const userInput = msg.body.trim();
+
+    if (!userInput) {
+      return;
+    }
+
+    console.log(
+      `[${new Date().toLocaleTimeString()}] Pesan: ${userInput}`
+    );
   try {
     const userInput = msg.body.trim();
 
