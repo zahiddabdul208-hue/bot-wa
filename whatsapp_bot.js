@@ -349,7 +349,6 @@ client.on('change_state', (state) => {
   console.log('🔄 WhatsApp State:', state);
 });
 
-client.on('message', async (msg) => {
 // ===============================
 // MESSAGE DEBUG
 // ===============================
@@ -389,17 +388,6 @@ client.on('message', async (msg) => {
     console.log(
       `[${new Date().toLocaleTimeString()}] Pesan: ${userInput}`
     );
-  try {
-    const userInput = msg.body.trim();
-
-    if (!userInput) {
-      return;
-    }
-
-    console.log(
-      `[${new Date().toLocaleTimeString()}] Pesan: ${userInput}`
-    );
-
     // ===============================
     // HELP
     // ===============================
