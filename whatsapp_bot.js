@@ -1,4 +1,3 @@
-
 // WhatsApp Bot dengan Fitur Training
 // Railway version dengan QR Code melalui halaman web
 
@@ -8,14 +7,15 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 
-// ===============================
-// WEB SERVER UNTUK QR
-// ===============================
+// ==================================================
+// WEB SERVER
+// ==================================================
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 let currentQR = null;
+let botReady = false;
 
 app.get('/', (req, res) => {
   if (currentQR) {
@@ -26,6 +26,7 @@ app.get('/', (req, res) => {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WhatsApp Bot - QR Code</title>
+
   <style>
     body {
       margin: 0;
@@ -85,7 +86,11 @@ app.get('/', (req, res) => {
 </body>
 </html>
     `);
-  } else {
+
+    return;
+  }
+
+  if (botReady) {
     res.send(`
 <!DOCTYPE html>
 <html>
@@ -93,6 +98,7 @@ app.get('/', (req, res) => {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WhatsApp Bot</title>
+
   <style>
     body {
       margin: 0;
@@ -130,51 +136,58 @@ app.get('/', (req, res) => {
     </p>
 
     <p>
-      QR Code tidak diperlukan.
+      WhatsApp Bot sedang berjalan.
     </p>
   </div>
 </body>
 </html>
     `);
+
+    return;
   }
+
+  res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp Bot</title>
+</head>
+
+<body style="
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#111;
+  color:white;
+  font-family:Arial;
+  text-align:center;
+">
+  <div>
+    <h1>🤖 WhatsApp Bot</h1>
+    <p>⏳ Bot sedang memulai...</p>
+    <p>Refresh halaman beberapa saat lagi.</p>
+  </div>
+</body>
+</html>
+  `);
 });
 
 app.listen(PORT, () => {
   console.log(`🌐 Web server berjalan di port ${PORT}`);
 });
 
-// ===============================
-// KONFIGURASI
-// ===============================
+// ==================================================
+// KNOWLEDGE BASE
+// ==================================================
 
 const KNOWLEDGE_BASE_FILE = path.join(
   __dirname,
   'knowledge_base.json'
 );
-
-// ===============================
-// WHATSAPP CLIENT
-// ===============================
-
-const client = new Client({
-  authStrategy: new LocalAuth({
-    clientId: 'railway-bot'
-  }),
-  puppeteer: {
-    headless: true,
-
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-gpu'
-    ]
-  }
-});
-
-// ===============================
-// KNOWLEDGE BASE
-// ===============================
 
 let knowledgeBase = {};
 
@@ -224,9 +237,9 @@ function saveKnowledgeBase() {
   }
 }
 
-// ===============================
+// ==================================================
 // SIMILARITY
-// ===============================
+// ==================================================
 
 function calculateSimilarity(str1, str2) {
   const s1 = str1
@@ -281,16 +294,39 @@ function findSimilarQuestion(userInput) {
   return bestMatch;
 }
 
-// ===============================
+// ==================================================
 // TRAINING MODE
-// ===============================
+// ==================================================
 
 let learningMode = false;
 let pendingQuestion = '';
 
-// ===============================
+// ==================================================
+// WHATSAPP CLIENT
+// ==================================================
+
+const client = new Client({
+  authStrategy: new LocalAuth({
+    clientId: 'railway-bot'
+  }),
+
+  puppeteer: {
+    headless: true,
+
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--no-zygote',
+      '--disable-software-rasterizer'
+    ]
+  }
+});
+
+// ==================================================
 // QR CODE
-// ===============================
+// ==================================================
 
 client.on('qr', async (qr) => {
   try {
@@ -299,6 +335,8 @@ client.on('qr', async (qr) => {
       margin: 2,
       errorCorrectionLevel: 'M'
     });
+
+    botReady = false;
 
     console.log('');
     console.log('================================');
@@ -316,12 +354,21 @@ client.on('qr', async (qr) => {
   }
 });
 
-// ===============================
+// ==================================================
+// AUTHENTICATED
+// ==================================================
+
+client.on('authenticated', () => {
+  console.log('✓ WhatsApp authentication berhasil');
+});
+
+// ==================================================
 // READY
-// ===============================
+// ==================================================
 
 client.on('ready', () => {
   currentQR = null;
+  botReady = true;
 
   console.log('');
   console.log('================================');
@@ -338,9 +385,33 @@ client.on('ready', () => {
   console.log('');
 });
 
-// ===============================
+// ==================================================
+// AUTH FAILURE
+// ==================================================
+
+client.on('auth_failure', (message) => {
+  botReady = false;
+
+  console.error(
+    '❌ Authentication gagal:',
+    message
+  );
+});
+
+// ==================================================
+// CHANGE STATE
+// ==================================================
+
+client.on('change_state', (state) => {
+  console.log(
+    `[${new Date().toLocaleTimeString()}] 🔄 WhatsApp State:`,
+    state
+  );
+});
+
+// ==================================================
 // MESSAGE DEBUG
-// ===============================
+// ==================================================
 
 client.on('message_create', (msg) => {
   console.log(
@@ -351,16 +422,9 @@ client.on('message_create', (msg) => {
   );
 });
 
-client.on('change_state', (state) => {
-  console.log(
-    `[${new Date().toLocaleTimeString()}] 🔄 WhatsApp State:`,
-    state
-  );
-});
-
-// ===============================
+// ==================================================
 // MESSAGE HANDLER
-// ===============================
+// ==================================================
 
 client.on('message', async (msg) => {
   try {
@@ -371,7 +435,7 @@ client.on('message', async (msg) => {
       JSON.stringify(msg.body)
     );
 
-    const userInput = msg.body.trim();
+    const userInput = (msg.body || '').trim();
 
     if (!userInput) {
       return;
@@ -381,11 +445,13 @@ client.on('message', async (msg) => {
       `[${new Date().toLocaleTimeString()}] Pesan: ${userInput}`
     );
 
-    // ===============================
-    // HELP
-    // ===============================
+    const command = userInput.toLowerCase();
 
-    if (userInput.toLowerCase() === '!help') {
+    // ==================================================
+    // HELP
+    // ==================================================
+
+    if (command === '!help') {
       const helpText = `
 🤖 *WHATSAPP BOT*
 
@@ -408,11 +474,11 @@ client.on('message', async (msg) => {
       return;
     }
 
-    // ===============================
+    // ==================================================
     // TRAIN
-    // ===============================
+    // ==================================================
 
-    if (userInput.toLowerCase() === '!train') {
+    if (command === '!train') {
       learningMode = true;
       pendingQuestion = '';
 
@@ -424,11 +490,11 @@ client.on('message', async (msg) => {
       return;
     }
 
-    // ===============================
+    // ==================================================
     // STOP
-    // ===============================
+    // ==================================================
 
-    if (userInput.toLowerCase() === '!stop') {
+    if (command === '!stop') {
       learningMode = false;
       pendingQuestion = '';
 
@@ -440,11 +506,11 @@ client.on('message', async (msg) => {
       return;
     }
 
-    // ===============================
+    // ==================================================
     // LIST
-    // ===============================
+    // ==================================================
 
-    if (userInput.toLowerCase() === '!list') {
+    if (command === '!list') {
       const entries = Object.entries(knowledgeBase);
 
       if (entries.length === 0) {
@@ -472,11 +538,11 @@ client.on('message', async (msg) => {
       return;
     }
 
-    // ===============================
+    // ==================================================
     // CLEAR
-    // ===============================
+    // ==================================================
 
-    if (userInput.toLowerCase() === '!clear') {
+    if (command === '!clear') {
       knowledgeBase = {};
       saveKnowledgeBase();
 
@@ -487,9 +553,9 @@ client.on('message', async (msg) => {
       return;
     }
 
-    // ===============================
+    // ==================================================
     // TRAINING MODE
-    // ===============================
+    // ==================================================
 
     if (learningMode) {
       if (pendingQuestion === '') {
@@ -524,9 +590,9 @@ client.on('message', async (msg) => {
       return;
     }
 
-    // ===============================
+    // ==================================================
     // MODE NORMAL
-    // ===============================
+    // ==================================================
 
     const response = findSimilarQuestion(userInput);
 
@@ -546,14 +612,17 @@ client.on('message', async (msg) => {
       return;
     }
 
-    // ===============================
+    // ==================================================
     // FALLBACK
-    // ===============================
+    // ==================================================
 
     const fallbackResponses = [
       'Hmm, saya belum tahu tentang itu 🤔\nKetik *!train* untuk mengajari saya.',
+
       'Pertanyaan bagus! Tapi saya belum mempelajarinya.\nGunakan *!train* untuk mengajari saya.',
+
       'Maaf, saya belum memahami pertanyaan itu.\nCoba gunakan *!train* 📚',
+
       'Saya belum punya jawaban untuk itu.\nBantu saya belajar dengan *!train* 🤖'
     ];
 
@@ -568,10 +637,9 @@ client.on('message', async (msg) => {
 
   } catch (error) {
     console.error(
-      '❌ Error saat memproses pesan:'
+      '❌ Error saat memproses pesan:',
+      error
     );
-
-    console.error(error);
 
     try {
       await msg.reply(
@@ -586,33 +654,22 @@ client.on('message', async (msg) => {
   }
 });
 
-// ===============================
+// ==================================================
 // DISCONNECTED
-// ===============================
+// ==================================================
 
 client.on('disconnected', (reason) => {
-  console.log('\n❌ WhatsApp terputus.');
+  botReady = false;
+  currentQR = null;
+
+  console.log('');
+  console.log('❌ WhatsApp terputus.');
   console.log('Alasan:', reason);
 });
 
-// ===============================
-// AUTHENTICATION
-// ===============================
-
-client.on('authenticated', () => {
-  console.log('✓ WhatsApp authentication berhasil');
-});
-
-client.on('auth_failure', (message) => {
-  console.error(
-    '❌ Authentication gagal:',
-    message
-  );
-});
-
-// ===============================
-// ERROR
-// ===============================
+// ==================================================
+// CLIENT ERROR
+// ==================================================
 
 client.on('error', (error) => {
   console.error(
@@ -621,58 +678,17 @@ client.on('error', (error) => {
   );
 });
 
-// ===============================
+// ==================================================
 // START BOT
-// ===============================
+// ==================================================
 
 loadKnowledgeBase();
 
-console.log('🚀 Memulai WhatsApp Bot...\n');
+console.log('🚀 Memulai WhatsApp Bot...');
 
-client.initialize();
-
-// ===============================
-// DISCONNECTED
-// ===============================
-
-client.on('disconnected', (reason) => {
-  console.log('\n❌ WhatsApp terputus.');
-  console.log('Alasan:', reason);
-});
-
-// ===============================
-// AUTHENTICATION
-// ===============================
-
-client.on('authenticated', () => {
-  console.log('✓ WhatsApp authentication berhasil');
-});
-
-client.on('auth_failure', (message) => {
+client.initialize().catch((error) => {
   console.error(
-    '❌ Authentication gagal:',
-    message
-  );
-});
-
-// ===============================
-// ERROR
-// ===============================
-
-client.on('error', (error) => {
-  console.error(
-    '❌ Client error:',
+    '❌ Gagal menjalankan WhatsApp Client:',
     error
   );
 });
-
-// ===============================
-// START BOT
-// ===============================
-
-loadKnowledgeBase();
-
-console.log('🚀 Memulai WhatsApp Bot...\n');
-
-client.initialize();
-
