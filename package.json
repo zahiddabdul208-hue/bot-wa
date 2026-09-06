@@ -1,4 +1,4 @@
-
+```json
 {
   "name": "whatsapp-bot-trainer",
   "version": "1.0.0",
@@ -14,20 +14,17 @@
     "ai",
     "training"
   ],
-
-"author": "",
-"license": "MIT",
-"dependencies": {
-  "dotenv": "^16.0.0",
-  "express": "^5.1.0",
-  "qrcode": "^1.5.4",
-  "qrcode-terminal": "^0.12.0",
-  "whatsapp-web.js": "^1.0.0"
-},
-"devDependencies": {
-"nodemon": "^3.1.14"
-}
-
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "express": "^5.1.0",
+    "qrcode": "^1.5.4",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   },
   "engines": {
     "node": "20.x"
@@ -36,5 +33,7 @@
     "puppeteer@23.11.1": true,
     "puppeteer@24.38.0": true
   }
+}
+```
 
 
